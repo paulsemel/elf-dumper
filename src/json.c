@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdbool.h>
+#include "print.h"
 
 static int json_level = 0;
 static FILE *out;
@@ -72,3 +73,7 @@ int json_end_format()
 	fprintf(out, "}\n");
 	return 1;
 }
+
+register_console(json, &json_init_format, &json_end_format, &json_new_section,
+		 &json_end_section, &json_new_array, &json_end_array,
+		 &json_new_entry, &json_configure);

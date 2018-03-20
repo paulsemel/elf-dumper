@@ -28,10 +28,45 @@
   new_entry(#ent, value, last); \
 }
 
-extern int (*init_format) ();
-extern int (*end_format) ();
-extern int (*new_section) (const char *name);
-extern int (*end_section) (const char *name, bool last);
-extern int (*new_array) (const char *name);
-extern int (*end_array) (const char *name, bool last);
-extern int (*new_entry) (const char *key, const char *value, bool last);
+extern int (*init_format)();
+extern int (*end_format)();
+extern int (*new_section)(const char *name);
+extern int (*end_section)(const char *name, bool last);
+extern int (*new_array)(const char *name);
+extern int (*end_array)(const char *name, bool last);
+extern int (*new_entry)(const char *key, const char *value, bool last);
+extern void (*configure)(FILE *f);
+
+struct console {
+	const char *name;
+	int (*init_format)();
+	int (*end_format)();
+	int (*new_section)(const char *name);
+	int (*end_section)(const char *name, bool last);
+	int (*new_array)(const char *name);
+	int (*end_array)(const char *name, bool last);
+	int (*new_entry)(const char *key, const char *value, bool last);
+	void (*configure)(FILE *f);
+} __attribute__((packed));
+
+extern struct console __start_consoles[];
+extern struct console __stop_consoles[];
+
+#define register_console(__name, __init, __end_format, \
+			 __new_section, __end_section, \
+			 __new_array, __end_array, __new_entry, \
+			 __configure) \
+	static struct console \
+	__attribute__ ((section("consoles"), used)) \
+	__attribute__ ((aligned(8))) \
+	cons_ ## __name = { \
+		.name = #__name, \
+		.init_format = __init, \
+		.end_format = __end_format, \
+		.new_section = __new_section, \
+		.end_section = __end_section, \
+		.new_array = __new_array, \
+		.end_array = __end_array, \
+		.new_entry = __new_entry, \
+		.configure = __configure \
+	}

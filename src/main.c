@@ -13,7 +13,6 @@
 #include "print.h"
 #include "print_elf.h"
 
-
 int (*init_format)();
 int (*end_format)();
 int (*new_section)(const char *name);
@@ -22,34 +21,30 @@ int (*new_array)(const char *name);
 int (*end_array)(const char *name, bool last);
 int (*new_entry)(const char *key, const char *value, bool last);
 
-
-void json_init(FILE *f)
+int console_init(const char *name, FILE *f)
 {
-	init_format = json_init_format;
-	end_format = json_end_format;
-	new_section = json_new_section;
-	end_section = json_end_section;
-	new_array = json_new_array;
-	end_array = json_end_array;
-	new_entry = json_new_entry;
-	json_configure(f);
-}
-
-void xml_init(FILE *f)
-{
-	init_format = xml_init_format;
-	end_format = xml_end_format;
-	new_section = xml_new_section;
-	end_section = xml_end_section;
-	new_array = xml_new_array;
-	end_array = xml_end_array;
-	new_entry = xml_new_entry;
-	xml_configure(f);
+	size_t count = (size_t)(__stop_consoles - __start_consoles);
+	int res = 0;
+	for (size_t i = 0; i < count; i++) {
+		if (!strcmp(__start_consoles[i].name, name)) {
+			init_format = __start_consoles[i].init_format;
+			end_format = __start_consoles[i].end_format;
+			new_section = __start_consoles[i].new_section;
+			end_section = __start_consoles[i].end_section;
+			new_array = __start_consoles[i].new_array;
+			end_array = __start_consoles[i].end_array;
+			new_entry = __start_consoles[i].new_entry;
+			__start_consoles[i].configure(f);
+			res = 1;
+			break;
+		}
+	}
+	return res;
 }
 
 static int print_usage(char *pname)
 {
-	printf("Usage: %s bin\n", pname);
+	printf("Usage: %s bin [--format|-f] format\n", pname);
 	return 1;
 }
 
@@ -63,6 +58,17 @@ static int fileExists(char *filename)
 {
 	return access(filename, F_OK) < 0 ? issue_error("File doesn't exist")
 					  : 0;
+}
+
+static char *getFormat(int argc, char *argv[])
+{
+	char *res = NULL;
+	for (int i = 0; i < argc; i++) {
+		if (!strcmp(argv[i], "--format")
+		    || !strcmp(argv[i], "-f"))
+			res = argv[i + 1];
+	}
+	return res;
 }
 
 static void *map_file(int fd)
@@ -90,13 +96,14 @@ int main(int argc, char *argv[])
 {
 	int res = 0;
 
-	res = argc < 2 ? print_usage(argv[0]) : fileExists(argv[1]);
+	res = argc < 4 ? print_usage(argv[0]) : fileExists(argv[1]);
+	char *name = getFormat(argc, argv);
 
-	if (!res) {
+	if (!res && name) {
 		int fd = open(argv[1], O_RDONLY);
 		char *base = map_file(fd);
-		// xml_init(stdout);
-		json_init(stdout);
+		if (!console_init(name, stdout))
+			return 1;
 		print_elf(base);
 		unmap_file(base, fd);
 	}

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdbool.h>
+#include "print.h"
 
 #define __unused __attribute__((unused))
 
@@ -69,3 +70,7 @@ int xml_end_format()
 	fprintf(out, "</myreadelf>\n");
 	return 1;
 }
+
+register_console(xml, &xml_init_format, &xml_end_format, &xml_new_section,
+		 &xml_end_section, &xml_new_array, &xml_end_array, &xml_new_entry,
+		 &xml_configure);
