@@ -8,64 +8,64 @@ static FILE *out;
 
 static void xml_print_offset(void)
 {
-  for (int i = 0; i < xml_level; i++)
-    fprintf(out, "\t");
+	for (int i = 0; i < xml_level; i++)
+		fprintf(out, "\t");
 }
 
 int xml_new_section(const char *name)
 {
-  xml_level++;
-  xml_print_offset();
-  fprintf(out, "<%s type=\"entity\">\n", name ? name : "entity");
-  return 1;
+	xml_level++;
+	xml_print_offset();
+	fprintf(out, "<%s type=\"entity\">\n", name ? name : "entity");
+	return 1;
 }
 
 int xml_new_array(const char *name)
 {
-  xml_level++;
-  xml_print_offset();
-  fprintf(out, "<%s type=\"array\">\n", name ? name : "array");
-  return 1;
+	xml_level++;
+	xml_print_offset();
+	fprintf(out, "<%s type=\"array\">\n", name ? name : "array");
+	return 1;
 }
 
 int xml_end_section(const char *name, bool __unused last)
 {
-  xml_print_offset();
-  fprintf(out, "</%s>\n", name ? name : "entity");
-  xml_level--;
-  return 1;
+	xml_print_offset();
+	fprintf(out, "</%s>\n", name ? name : "entity");
+	xml_level--;
+	return 1;
 }
 
 int xml_end_array(const char *name, bool __unused last)
 {
-  xml_print_offset();
-  fprintf(out, "</%s>\n", name ? name : "array");
-  xml_level--;
-  return 1;
+	xml_print_offset();
+	fprintf(out, "</%s>\n", name ? name : "array");
+	xml_level--;
+	return 1;
 }
 
 int xml_new_entry(const char *key, const char *value, bool __unused last)
 {
-  xml_level++;
-  xml_print_offset();
-  fprintf(out, "<%s>%s</%s>\n", key, value, key);
-  xml_level--;
-  return 1;
+	xml_level++;
+	xml_print_offset();
+	fprintf(out, "<%s>%s</%s>\n", key, value, key);
+	xml_level--;
+	return 1;
 }
 
 void xml_configure(FILE *f)
 {
-  out = f;
+	out = f;
 }
 
 int xml_init_format()
 {
-  fprintf(out, "<myreadelf>\n");
-  return 1;
+	fprintf(out, "<myreadelf>\n");
+	return 1;
 }
 
 int xml_end_format()
 {
-  fprintf(out, "</myreadelf>\n");
-  return 1;
+	fprintf(out, "</myreadelf>\n");
+	return 1;
 }
